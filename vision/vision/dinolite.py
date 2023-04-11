@@ -16,7 +16,7 @@ class DinoliteMicroscope(Node):
         timer_period = 0.1 #seconds
         self.timer = self.create_timer(timer_period, self.capture)
 
-        self.cam = cv2.VideoCapture(0)       #TODO: Make sure that device number is/stays 1, otherwise read from some settings and find the device
+        self.cam = cv2.VideoCapture(0)       #TODO: Make sure to check device number, otherwise read from some settings and find the device
 
     def capture(self):
         
