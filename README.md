@@ -17,9 +17,13 @@ To use these packages, you will need to have ROS2 Humble installed on your syste
 https://docs.ros.org/en/humble/index.html
 
 Once you have ROS2 installed, you can clone this repository and build the packages using the following commands:
+
 cd ~/ros2_ws/src
+
 git clone https://github.com/bramros2/ROS_Ender3.git
+
 cd ..
+
 colcon build
 
 ## Usage
