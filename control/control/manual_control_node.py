@@ -10,7 +10,7 @@ class SerialController(Node):
         super().__init__('manual_control')
         # subscribe to keyboard input topic
         self.pumps_initialized = False
-        self.subscription = self.create_subscription(String, '/command_input',  self.keyboard_input_callback, 1)
+        self.subscription = self.create_subscription(String, '/command_input',  self.command_input_callback, 1)
 
         self.ser = serial.Serial('/dev/ttyUSB0' , 115200, timeout=1) 
         self.init_pumps(self.ser)

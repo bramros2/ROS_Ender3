@@ -3,11 +3,29 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QApplication, QHBoxLayout, \
     QMessageBox, QTextEdit, QScrollArea
 import rclpy
-from std_msgs.msg import String
+import serial 
+import serial.tools.list_ports
+
+from rclpy.node             import Node
+from std_msgs.msg           import String
+
+
+class PubNode(Node):
+    def __init__(self):
+        super().__init__('pubnode')
+        self.publisher = self.create_publisher(String, 'command_input',10)
+
+    def send_input(self, input_string):
+        msg = String()
+        msg.data = input_string
+        self.publisher.publish(msg)
+
 
 class KeyControlWidget(QWidget):
     def __init__(self):
         super().__init__()
+        rclpy.init()
+        self.pubnode = PubNode()
 
         # Set window size
         self.setGeometry(0, 0, 1360, 800)
@@ -150,11 +168,8 @@ class KeyControlWidget(QWidget):
             error_msg.exec_()
             return
 
-        # Publish input to ROS2 topic
-        publisher = self.create_publisher(String, '/command_input', 10)
-        msg = String()
-        msg.data = input_string
-        publisher.publish(msg)
+        # Create instance of publisher to publish GCode to control node
+        self.pubnode.send_input(input_string)
 
         # Clear input
         self.formatted_text = ''
