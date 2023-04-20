@@ -16,8 +16,6 @@ class Controller(Node):
         self.Kp = 0.2  # Proportional gain
         self.Ki = 0.1  # Integral gain
         self.Kd = 0.0  # Derivative gain
-        self.min_ref = -10  # Minimum reference value
-        self.max_ref = 10  # Maximum reference value
         self.min_output = 0.01  # Minimum output value
         self.max_output = 2.0  # Maximum output value
         self.integral = 0  # Integral term
@@ -30,6 +28,12 @@ class Controller(Node):
 
         
         self.wanted_width = 20  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
+
+        # Create a publisher for the control signal
+        self.publisher = self.create_publisher(
+            Float64,  # Data type of the message to be published
+            'control_signal_topic',  # Topic name
+            1)  # QoS settings
 
         # Create a subscription to the image detection
         self.droplet_subscription = self.create_subscription(
@@ -77,6 +81,7 @@ class Controller(Node):
 
         self.ratio = control_signal
         print(control_signal)
+        self.publisher.publish(control_signal)
         #self.start_pump(control_signal)
         # Update the last error and time for the next iteration
         self.last_error = error
