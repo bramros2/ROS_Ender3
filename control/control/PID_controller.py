@@ -11,7 +11,7 @@ class PIDControllerNode(Node):
         # Initialize PID controller with some parameters
         self.Kp = 0.2  # Proportional gain
         self.Ki = 0.1  # Integral gain
-        self.Kd = 0.1  # Derivative gain
+        self.Kd = 0.0  # Derivative gain
         self.min_ref = -10  # Minimum reference value
         self.max_ref = 10  # Maximum reference value
         self.min_output = 0.01  # Minimum output value
@@ -20,7 +20,7 @@ class PIDControllerNode(Node):
         self.last_error = 0  # Last error value
         self.last_time = self.get_clock().now()  # Last time the callback was called
         self.feedrate = 0  # Feedrate value
-        self.wanted_width = 10  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
+        self.wanted_width = 20  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
 
         # Create a subscription to the feedrate topic
         self.feedrate_subscription = self.create_subscription(
@@ -41,6 +41,7 @@ class PIDControllerNode(Node):
             Float64,  # Data type of the message to be published
             'control_signal_topic',  # Topic name
             1)  # QoS settings
+        
     def feedrate_callback(self, msg):
         self.feedrate = msg.data
 

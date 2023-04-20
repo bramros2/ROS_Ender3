@@ -31,8 +31,7 @@ class Controller(Node):
         M204 T500.00 ;Setup Travel acceleration, no print or retract since we are not extruding anything
         M205 X0.40 Y0.40 Z0.40 E5.00 ;Setup Jerk, jerk is the minimum speed that the motors move
         ; This is the most important setting to tune, it defines how many stepper motor steps equate to 1 mm of syringe movement
-        M92 X-4000 Y-4000 Z4000 ; 4000 steps per mm, as measured by Vittorio
-        M92 X-20000 Y-20000 Z-20000 ; 20000 steps per ml from Barts code
+        M92 X-20000 Y-20000 Z20000 ; 20000 steps per ml from Barts code
         M302 S0 ; print with cold hotend -- This allows cold extrusion, but we aren't doing any, maybe when we use the stepper motor of the extruder too
         M121 ; don't use endstops
         G91 ; relative positioning'''
@@ -49,11 +48,11 @@ class Controller(Node):
         self.pumps_initialized = True
         self.get_logger().info('Ender3 initialised')
 
-        command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.00167,0.000835,0,0.01) 
+        command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.5,0.5,0,0.1) 
         if command != None and self.pumps_initialized == True:
             self.ser.write(command.encode())
             response = self.ser.readline()
-            self.get_logger().info('Pumps started with X0.5 Y0.5 Z0.5 F0.01')
+            self.get_logger().info('Pumps started with X0.5 Y0.5 Z0 F0.01')
             init_feedrate = 0.01
             self.feedpub = Float64()
             print('Inital feedrate = ' + str(init_feedrate))
