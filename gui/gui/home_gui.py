@@ -1,4 +1,4 @@
-from range_filter import App, VideoThread
+from settings_gui import App
 from keycontrol_gui import KeyControlWidget
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QAction, QStackedWidget
 
@@ -17,9 +17,9 @@ class MainWindow(QMainWindow):
         menubar.addAction(home_action)
 
         # Create a "Range Filter" action and add it to the menu bar
-        range_widget_action = QAction("Range filter", self)
-        range_widget_action.triggered.connect(self.show_range_widget)
-        menubar.addAction(range_widget_action)
+        settings_widget_action = QAction("Settings", self)
+        settings_widget_action.triggered.connect(self.show_range_widget)
+        menubar.addAction(settings_widget_action)
 
         # Create a "Keycontrol" action and add it to the menu bar
         keyctrl_widget_action = QAction("Key Control", self)
@@ -34,8 +34,8 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.home_label)
 
         # Create an instance of MyWidget and add it to the stacked widget
-        self.range_widget = App()
-        self.stacked_widget.addWidget(self.range_widget)
+        self.settings_widget = App()
+        self.stacked_widget.addWidget(self.settings_widget)
 
         #Create an instance of KeyControl widget and add it to the stacked widget
         self.keyctrl_widget = KeyControlWidget()
@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
 
     def show_range_widget(self):
         # Show the range widget page
-        self.stacked_widget.setCurrentWidget(self.range_widget)
+        self.stacked_widget.setCurrentWidget(self.settings_widget)
 
     def show_keyctrl_widget(self):
         #show the keycontrol widget

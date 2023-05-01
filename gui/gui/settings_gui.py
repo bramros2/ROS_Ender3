@@ -5,7 +5,7 @@ import cv2
 from PyQt5 import QtGui
 from PyQt5.QtGui import QImage, QPixmap, QPainter, QPen, QColor
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSlider, QMessageBox, \
-    QFileDialog
+    QFileDialog, QDialog, QLineEdit
 from PyQt5.QtCore import Qt, QTimer, QPointF
 
 class App(QWidget):
@@ -102,6 +102,17 @@ class App(QWidget):
         load_button = QPushButton('Load HSV')
         load_button.clicked.connect(self.on_load_button_clicked)
 
+        self.draw_line_button = QPushButton('Draw Line')
+        self.draw_line_button.setCheckable(True)
+        self.draw_line_button.clicked.connect(self.on_draw_line_clicked)
+
+        clear_line_button = QPushButton('Clear Line')
+        clear_line_button.clicked.connect(self.on_clear_line_clicked)
+
+        calibrate_button = QPushButton('Calibrate pixel size')
+        calibrate_button.clicked.connect(self.on_calibrate_clicked)
+
+
         # create a vertical box layout and add the two labels
         top_layout1 = QVBoxLayout()
         top_layout2 = QVBoxLayout()
@@ -119,6 +130,11 @@ class App(QWidget):
         button_layout.addWidget(save_button)
         button_layout.addWidget(load_button)
         button_layout.addWidget(reset_button)
+
+        button0_layout = QHBoxLayout()
+        button0_layout.addWidget(self.draw_line_button)
+        button0_layout.addWidget(clear_line_button)
+        button0_layout.addWidget(calibrate_button)
 
         bottom_layout = QVBoxLayout()
         hmin_layout = QHBoxLayout()
@@ -157,10 +173,12 @@ class App(QWidget):
         vmax_layout.addWidget(self.vmax_val_label, alignment=Qt.AlignRight)
         bottom_layout.addLayout(vmax_layout)
 
+        
         bottom_layout.addLayout(button_layout)
 
         buttons_layout = QHBoxLayout()
         bottom_layout.addLayout(buttons_layout)
+        bottom_layout.addLayout(button0_layout)
 
         self.rectangle_button = QPushButton("Draw Rectangle", self)
         self.rectangle_button.setCheckable(True)
@@ -211,16 +229,23 @@ class App(QWidget):
         labels_layout2.addWidget(self.background_label)
 
         # Initialize instance variables
+        self.line_drawing = False
         self.is_drawing = False
         self.rect_start = None
         self.rect_start_lbl = None
         self.rect_end = None
         self.rect_end_lbl = None
         self.rectangle = None
+        self.line = None
+        self.line_start = None
+        self.line_end = None
+        self.line_start_lbl = None
+        self.line_end_lbl = None
         self.stored_frame = None
         self.subtraction_on = False
         self.rectangle_coords = None
         self.background = None
+        self.umPerPixel = None
 
         top_layout = QHBoxLayout()
         top_layout.addLayout(top_layout1)
@@ -246,6 +271,9 @@ class App(QWidget):
             if self.rectangle is not None:
                 x, y, w, h = self.rectangle
                 painter.drawRect(x, y, w, h)
+            if self.line is not None:
+                x, y, w, h = self.line
+                painter.drawRect(x,y,w,h)
             painter.end()
             h, w, ch = frame.shape
             bytes_per_line = ch * w
@@ -258,6 +286,7 @@ class App(QWidget):
                 fgbg = cv2.createBackgroundSubtractorMOG2()
                 fgbg.apply(self.background)
                 fgmask = fgbg.apply(frame)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)        
         thresh = cv2.inRange(frame, (self.hmin, self.smin, self.vmin), (self.hmax, self.smax, self.vmax))
         if self.subtraction_on and self.background is not None:
             thresh = cv2.bitwise_and(fgmask,thresh)
@@ -416,7 +445,7 @@ class App(QWidget):
             self.start_label.setText(f"Rect start: {self.rect_start_lbl}")
             self.end_label.setText(f"Rect end: {self.rect_end_lbl}")
             self.rect_label.setText(f"Rectangle: {self.rectangle}")
-            self.stored_label.setText(f"Stored frame: {self.stored_frame is not None}")
+            self.stored_label.setText(f"um/pixel: {self.umPerPixel}")
             self.subtraction_label.setText(f"Subtraction on: {self.subtraction_on}")
             self.coords_label.setText(f"Rect coords: {self.rectangle_coords}")
             self.background_label.setText(f"Background: {self.background is not None}")
@@ -443,13 +472,69 @@ class App(QWidget):
         y_max = round((y + h) / self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT), 4)
         y_max = min(1,y_max)
 
-        return [x_min, y_min, x_max, y_max]
+        return [x_min, x_max, y_min, y_max]
     
     def toggle_subtraction(self):
         if self.subtraction_on:
             self.subtraction_on = False    
         else:
             self.subtraction_on = True
+
+    def on_draw_line_clicked(self):
+        if self.line_drawing:
+            self.line_drawing = False
+            self.draw_line_button.setChecked(False)
+            self.line = self.get_line()             #
+            self.line_start_lbl = self.line_start
+            self.line_end_lbl = self.line_end
+            self.line_start = None
+            self.line_end = None
+        else:
+            self.line_drawing = True
+            self.line = None
+            self.update_frame()
+        if self.line_drawing:
+            self.draw_line_button.setStyleSheet('background-color: green; color: white;')
+        else:
+            self.draw_line_button.setStyleSheet('')
+
+    def get_line(self):
+        if self.line_start is None or self.line_end is None:
+            return
+        x, y, w, h = cv2.boundingRect(np.array([self.line_start, self.line_end]))
+        return (x,y,0,h)
+
+    def on_clear_line_clicked(self):
+        self.line = None
+        self.update_frame()
+
+    def on_calibrate_clicked(self):
+        if self.line is None:
+            return
+        dialog = QDialog(self)
+        dialog.setWindowTitle('Calibrate Pixels')
+        layout = QVBoxLayout()
+        label = QLabel('Enter channel size in um:')
+        layout.addWidget(label)
+        lineEdit = QLineEdit()
+        layout.addWidget(lineEdit)
+        button = QPushButton('OK')
+        layout.addWidget(button)
+        dialog.setLayout(layout)
+
+        def okPressed():
+            channelSize = float(lineEdit.text())
+            self.umPerPixel = self.calculateUmPerPixel(channelSize)
+            dialog.accept()
+
+        button.clicked.connect(okPressed)
+        dialog.exec_()
+
+    def calculateUmPerPixel(self, channelSize):
+        length = self.line[3]
+        umPerPixel = channelSize / length
+        return umPerPixel
+
 
     def draw_rectangle(self):
         if self.is_drawing:
@@ -482,7 +567,18 @@ class App(QWidget):
                 self.rect_end = (pos.x(), pos.y())
                 self.rect_end_lbl = self.rect_end
                 self.draw_rectangle()
-
+        if self.line_drawing:
+            if self.line_start is None:
+                # Adjust mouse coordinates to account for videoframe position
+                pos = self.video_frame.mapFromGlobal(event.globalPos())
+                self.line_start = (pos.x(),pos.y())
+                self.line_start_lbl = self.line_start[1]
+            else:
+                # Adjust mouse coordinates to account for videoframe position
+                pos = self.video_frame.mapFromGlobal(event.globalPos())
+                self.line_end = (pos.x(),pos.y())
+                self.line_end_lbl = self.line_end[1]
+                self.on_draw_line_clicked()
 
     def get_rect(self):
         if self.rect_start is None or self.rect_end is None:

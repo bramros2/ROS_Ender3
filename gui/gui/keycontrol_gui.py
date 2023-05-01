@@ -16,9 +16,11 @@ class PubNode(Node):
         self.publisher = self.create_publisher(String, 'command_input',10)
 
     def send_input(self, input_string):
-        msg = String()
-        msg.data = input_string
-        self.publisher.publish(msg)
+        commands = input_string.splitlines()
+        for command in commands:
+            msg = String()
+            msg.data = command
+            self.publisher.publish(msg)
 
 
 class KeyControlWidget(QWidget):
@@ -142,7 +144,7 @@ class KeyControlWidget(QWidget):
         feedrate = float(self.feedrate_input.text())
 
         # Format input as string
-        input_string = 'G1 X{:.2f} Y{:.2f} Z{:.2f} F{:.2f}\n'.format(x, y, z, feedrate)
+        input_string = 'G1 X{:.2f} Y{:.2f} Z{:.2f} F{:.2f}'.format(x, y, z, feedrate)
 
         # Print formatted input to console
         self.formatted_text += input_string + '\n'

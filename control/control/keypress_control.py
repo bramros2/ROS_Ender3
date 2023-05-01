@@ -52,19 +52,26 @@ class KeyController(Node):
     def start_pump(self,key):
         # send Gcode command to move a pump
         if key == 'x':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.02,0.1,0.5)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0,1,0,0.1)
+            print(command)
         elif key == 'y':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.01,0.0025,0.01,1)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.15,0,0.1)
+            print(command)
         elif key == 'z':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.03,0.1,1.5)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.2,0,0.1)
+            print(command)
         elif key == 'o':
-            command = 'G1 X{:.2f} Y{:.2f} Z{:.2f} F{:.2f}\n'.format(0.1,0.035,0.1,0.1)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.25,0,0.1)
+            print(command)
         elif key == 'a':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.04,0.1,0.1)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.3,0,0.1)
+            print(command)
         elif key == 'b':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.045,0.1,0.1)
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.35,0,0.1)
+            print(command)
         elif key == 'p':
-            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0,0.1,0.1) 
+            command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.1,0.4,0,0.1)
+            print(command)
     
         if command != None and self.pumps_initialized == True:
             self.get_logger().info(command)

@@ -53,9 +53,9 @@ class SerialController(Node):
             response = self.ser.readline()
             self.get_logger().info(response)
 
-    # define keyboard input callback function
+    
     def command_input_callback(self,data):
-        # get the pressed key
+        
         commands = data.data
         commands = commands.splitlines()
         for command in commands:

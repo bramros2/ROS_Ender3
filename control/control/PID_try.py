@@ -77,7 +77,7 @@ class Controller(Node):
         control_signal = max(control_signal, self.min_output)
         control_signal = min(control_signal, self.max_output)
         self.get_logger().info("New feedback rate")
-        self.get_logger().info(control_signal)
+        
 
         self.ratio = control_signal
         print(control_signal)
