@@ -1,6 +1,7 @@
 import rclpy
 import sys
 import time
+import math
 
 from rclpy.node import Node
 from std_msgs.msg import Float64
@@ -100,17 +101,21 @@ class DropletDetector(Node):
         # Check if the image is large enough for processing (320x240)
         (rows, cols, channels) = cv_image.shape
         if cols > 60 and rows > 60:
+
+            #define region of interest
+            roi = self.detection_window
+
             # Call blob_detect function to detect droplets in the image
             # using specified parameters such as thresholds and blur
             keypoints, mask = blob_detect(cv_image, self._threshold[0], self._threshold[1], self._blur,
-                                          blob_params=self._blob_params, search_window=self.detection_window)
+                                          blob_params=self._blob_params)
             # Blur the area outside the detection window to create a focus
-            cv_image = blur_outside(cv_image, 10, self.detection_window)
+            cv_image = blur_outside(cv_image, 10, roi)
             # Draw the detection window as a rectangle
             cv_image = draw_window(cv_image, self.detection_window, line=1)
             # Draw a frame around the image
             cv_image = draw_frame(cv_image)
-            # Draw circles around the detected droplets
+            # Draw red circles around all the detected droplets
             cv_image = draw_keypoints(cv_image, keypoints)
 
             try:
@@ -130,10 +135,31 @@ class DropletDetector(Node):
         for kp in keypoints:
             x, y = kp.pt
             r = kp.size / 2
-            x, y, r = int(x), int(y), int(r)
-            cv2.circle(result, (x, y), r, (0, 255, 0), thickness=2)
-            sum += kp.size
-            count += 1
+            #x, y, r = int(x), int(y), int(r)
+            if x >= roi[0] and y >= roi[1] and x <= roi[2] and y <= roi[3]:
+                cv2.circle(result, (x, y), r, (0, 255, 0), thickness=2)
+                sum += kp.size
+                count += 1
+            else:
+                if x < roi[0]:
+                    xdiff = roi[0]-x
+                elif x > roi[2]:
+                    xdiff = x - roi[2]
+                else:
+                    xdiff = 0
+                if y < roi[1]:
+                    ydiff = roi[1]-x
+                elif x > roi[3]:
+                    ydiff = y - roi[3]
+                else:
+                    ydiff = 0
+                distance_to_roi = math.sqrt(xdiff**2 + ydiff**2)
+                if distance_to_roi < r:
+                    cv2.circle(result, (x, y), r, (0, 255, 0), thickness=2)
+                    sum += kp.size
+                    count += 1
+                else:
+                    cv2.circle(result, (x, y), r, (255, 0, 0), thickness=2)
 
         
         if count != 0:
