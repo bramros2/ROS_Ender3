@@ -11,34 +11,32 @@ class PIDControllerNode(Node):
         self.get_logger().info("PID node initialized")
 
         # Initialize PID controller with some parameters
-        self.Kp = 0.2  # Proportional gain
-        self.Ki = 0.1  # Integral gain
+        self.Kp = 0.01  # Proportional gain
+        self.Ki = 0.0  # Integral gain
         self.Kd = 0.0  # Derivative gain
-        self.min_ref = -10  # Minimum reference value
-        self.max_ref = 10  # Maximum reference value
-        self.min_output = 0.01  # Minimum output value
+        self.min_output = 0.1  # Minimum output value
         self.max_output = 2.0  # Maximum output value
         self.integral = 0  # Integral term
         self.last_error = 0  # Last error value
         self.last_time = self.get_clock().now()  # Last time the callback was called
         self.flow_speed = 0  # Flow speed value
-        self.wanted_width = 20  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
+        self.wanted_width = 92  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
 
         self.start_time = None
         self.droplet_sizes = []
-        self.secs_per_update = 30  # Time interval for updating the average droplet size
+        self.secs_per_update = 105  # Time interval for updating the average droplet size
         self.droplet_update_interval = 10  # Time interval for recording droplet sizes
 
         # Create a subscription to the flow speed topic
         self.flow_speed_subscription = self.create_subscription(
-            Float64(),  # Data type of the message received
+            Float64,  # Data type of the message received
             'continuous_flow',  # Topic name
             self.flow_speed_callback,  # Callback function to handle the received message
             1)  # QoS settings
 
         # Create a subscription to the droplet size
         self.droplet_subscription = self.create_subscription(
-            Float64(),  # Data type of the message received
+            Float64,  # Data type of the message received
             'droplet_size',  # Topic name
             self.callback,  # Callback function to handle the received message
             1)  # QoS settings
@@ -52,6 +50,7 @@ class PIDControllerNode(Node):
     def flow_speed_callback(self, msg):
         self.flow_speed = msg.data
 
+
     def callback(self, msg):
         if self.start_time is None:
             self.start_time = time.time()
@@ -62,6 +61,7 @@ class PIDControllerNode(Node):
         if elapsed_time >= self.secs_per_update - self.droplet_update_interval:
             # Record the droplet size during the specified interval
             self.droplet_sizes.append(msg.data)
+            self.get_logger().info("Measuring droplet sizes")
 
             if elapsed_time >= self.secs_per_update:
                 # Calculate the average droplet size from the recorded sizes
@@ -91,8 +91,9 @@ class PIDControllerNode(Node):
                 # Limit the control signal to the specified range
                 control_signal = max(control_signal, self.min_output)
                 control_signal = min(control_signal, self.max_output)
-                self.get_logger().info("New feedback rate")
-                self.get_logger().info(control_signal)
+                message = str(control_signal)
+                self.get_logger().info("New feedback rate " + message)
+     
 
                 # Publish the control signal as a Float64 message
                 control_signal_msg = Float64()
@@ -107,6 +108,9 @@ class PIDControllerNode(Node):
                 # Update the last error and time for the next iteration
                 self.last_error = error
                 self.last_time = now
+                
+                # Update the secs_per_update to accomodate the new command
+                self.secs_per_update = (control_signal / 0.1) * 33
 
 
 def main(args=None):
