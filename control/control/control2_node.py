@@ -1,3 +1,4 @@
+
 import rclpy
 import serial
 import serial.tools.list_ports
@@ -12,8 +13,8 @@ class Controller(Node):
         self.get_logger().info("Control node initialized")
         # subscribe to keyboard input topic
         self.pumps_initialized = False
-        self.pid_subscription = self.create_subscription(Float64(), 'control_signal_topic',  self.pid_input_callback, 1)
-        self.cont_flow_publisher = self.create_publisher(Float64(), 'continuous_flow', 1)
+        self.pid_subscription = self.create_subscription(Float64, 'control_signal_topic',  self.pid_input_callback, 1)
+        self.cont_flow_publisher = self.create_publisher(Float64, 'continuous_flow', 1)
 
         self.ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
         self.init_pumps(self.ser)
@@ -30,7 +31,7 @@ class Controller(Node):
         M204 T500.00 ;Setup Travel acceleration, no print or retract since we are not extruding anything
         M205 X0.40 Y0.40 Z0.40 E5.00 ;Setup Jerk, jerk is the minimum speed that the motors move
         ; This is the most important setting to tune, it defines how many stepper motor steps equate to 1 mm of syringe movement
-        M92 X-20000 Y-20000 Z20000 ; 20000 steps per ml from Barts code
+        M92 X-20927 Y-20927 Z20927 ; 20927 steps per ml for 10mL syringe
         M302 S0 ; print with cold hotend -- This allows cold extrusion, but we aren't doing any, maybe when we use the stepper motor of the extruder too
         M121 ; don't use endstops
         G91 ; relative positioning'''
@@ -47,19 +48,18 @@ class Controller(Node):
         self.pumps_initialized = True
         self.get_logger().info('Ender3 initialised')
 
-        command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.5, 0.5, 0, 0.1)
+        command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.05,0.3,0,0.1)
         if command != None and self.pumps_initialized == True:
             self.ser.write(command.encode())
             response = self.ser.readline()
-            self.get_logger().info('Pumps started with X0.5 Y0.5 Z0 F0.01')
-            init_flow = 0.1
-            self.cont_flow_pub = Float64()
-            self.cont_flow_pub.data = init_flow
-            self.cont_flow_publisher.publish(init_flow)
+            self.get_logger().info('Pumps started with X0.05 Y0.3 Z0 F0.1')
+            flow_pub = Float64()
+            flow_pub.data = 0.3
+            self.cont_flow_publisher.publish(flow_pub)
 
     def start_pump(self, flow):
         # send Gcode command to move a pump
-        command = 'G1 X{:.2f} Y{:.2f} Z{:.2f} F{:f}\n'.format(1.0, flow, 0.5, 0.1)  # TODO: read ratios from settings instead of hardcoding
+        command = 'G1 X{:.5f} Y{:.5f} Z{:.5f} F{:f}\n'.format(0.05, flow, 0, 0.1)  # TODO: read ratios from settings instead of hardcoding
         if command != None and self.pumps_initialized == True:
             self.ser.write(command.encode())
             self.get_logger().info('New command sent: ' + command)
