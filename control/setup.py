@@ -23,7 +23,9 @@ setup(
         	'keycontrol = control.keypress_control:main',
         	'teleoppump = control.teleop_pumps:main',
         	'pid	    = control.PID_controller:main', 
-        	'control    = control.control_node:main'
+        	'control    = control.control_node:main',
+            'Pid2	    = control.PID_node2:main',
+        	'control2   = control.control2_node:main',
         ],
     },
 )
