@@ -24,6 +24,7 @@ setup(
         	'dino	    = vision.dinolite:main',
         	'drop_find  = vision.droplet_node:main',
         	'plot	    = vision.size_plot:main',
+            'drop_test = vision.droplet_node_2:main',
         ],
     },
 )
