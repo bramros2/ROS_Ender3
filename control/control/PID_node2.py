@@ -21,7 +21,11 @@ class PIDControllerNode(Node):
         self.last_time = self.get_clock().now()  # Last time the callback was called
         self.flow_speed = 0  # Flow speed value
         self.wanted_width = 92  # Desired width of the object to be tracked.                   #TODO: Change to read from settings instead of hardcoded
-
+        if self.wanted_width <= 0:
+            self.wanted_width = 0
+        if self.wanted_width >= 200:
+            self.wanted_width = 200
+    
         self.start_time = None
         self.droplet_sizes = []
         self.secs_per_update = 105  # Time interval for updating the average droplet size
