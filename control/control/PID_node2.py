@@ -51,9 +51,22 @@ class PIDControllerNode(Node):
             'control_signal_topic',  # Topic name
             1)  # QoS settings
         
+        self.subscription = self.create_subscription(
+            String,   # Data type of the message to be published
+            '/keyboard_input',  # Topic name
+            self.keyboard_input_callback,   # Callback function to handle the received message
+            1)  # QoS settings
+
+        
     def flow_speed_callback(self, msg):
         self.flow_speed = msg.data
-
+       
+    def keyboard_input_callback(self,data): #function to change wanted width during experiment
+        # get the pressed key
+        key = data.data
+        
+        if key == 'c':
+            self.wanted_width = 100
 
     def callback(self, msg):
         if self.start_time is None:
