@@ -31,21 +31,22 @@ To use the packages, you will need to run the following nodes (the other files a
 
 'teleop_pumps': To teleoperate the Ender3 using the keyboard, run the following command:
 ros2 run control teleoppump
+this node can also be used to change the setpoint of the PID
 
 'keypress_control': Recieves the commands from the teleoppump node and sends GCode to the Ender3 based on the input. You can manually edit/add more commands to the script. To run, use:
 ros2 run control keycontrol
 
-'PID_node2': Feedback controller that takes the current feedrate and adjusts the speed of the pumps based on the difference between the measured size and wanted size of droplets. To use:
-ros2 run control Pid2
+'PID_node': Feedback controller that takes the current feedrate and adjusts the speed of the pumps based on the difference between the measured size and wanted size of droplets. To use:
+ros2 run control pid
 
-çontrol2_node': Node that initializes and sends commands to Ender3 based on PID feedback recieved from PID_node2. 
+çontrol_node': Node that initializes and sends commands to Ender3 based on PID feedback recieved from PID_node. 
 
 'dinolite': Camere capture node*. 
 ros2 run vision dino
 
 *Mostly used for secondary (USB) cameras. For Normal PiCamera, code from https://gitlab.com/boldhearts/ros2_v4l2_camera/-/tree/rolling/ was used.
 
-'droplet_node_2': Image detection using opencv. Detects droplets based on image thresholding and settings. Publishes average droplet size. To use:
+'droplet_node': Image detection using opencv. Detects droplets based on image thresholding and settings. Publishes average droplet size. To use:
 ros2 run vision drop_find
 
 To configure the settings for the Computer Vision, launch the settings_gui.py. Settings can be saved to a text file. Currently, these values have to be hardcoded into the droplet detection node. 
